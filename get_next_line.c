@@ -6,7 +6,7 @@
 /*   By: rishibas <rishibas@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/15 17:49:33 by rishibas          #+#    #+#             */
-/*   Updated: 2024/05/20 21:00:24 by rishibas         ###   ########.fr       */
+/*   Updated: 2024/05/21 19:30:04 by rishibas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,14 +45,26 @@ char	*find_newline_return_line(char *read_part)
 char	*get_next_line_help(char *memo, char *buf, int fd)
 {
 	ssize_t	n;
-	char	*temp;
 	char	*add;
-	char	*new_buf;
 
 	add = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!add)
+	{
+		if (memo != NULL)
+		{
+			free(memo);
+			free(buf);
+		}
 		return (NULL);
+	}
 	n = read(fd, buf, BUFFER_SIZE);
+	if (n < 0)
+	{
+		free(add);
+		free(buf);
+		free(memo);
+		return (NULL);
+	}
 	buf[n] = '\0';
 	while (!ft_strchr(buf, '\n') && n != 0)
 	{
@@ -69,10 +81,7 @@ char	*get_next_line_help(char *memo, char *buf, int fd)
 			return (NULL);
 		}
 		add[n] = '\0';
-		new_buf = ft_strjoin(buf, add);
-		free(buf);
-		// free(add);
-		buf = new_buf;
+		buf = ft_strjoin(buf, add);
 	}
 	free(add);
 	if (n > 0)
@@ -80,21 +89,14 @@ char	*get_next_line_help(char *memo, char *buf, int fd)
 		if (!memo)
 			memo = ft_strdup(buf);
 		else
-		{
-			temp = ft_strjoin(memo, buf);
-			free(memo);
-			memo = temp;
-		}
+			memo = ft_strjoin(memo, buf);
 	}
 	if (n == 0)
-	{
-		temp = ft_strjoin(memo, buf);
-		free(memo);
-		memo = temp;
-	}
+		memo = ft_strjoin(memo, buf);
 	free(buf);
 	return (memo);
 }
+
 
 char	*update_memo(char *read_part)
 {
@@ -129,7 +131,7 @@ char	*get_next_line(int fd)
 	char		*line;
 	char		*read_part;
 
-	if (fd < 0 && BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	buf = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!buf)
@@ -146,7 +148,11 @@ char	*get_next_line(int fd)
 	}
 	memo = update_memo(read_part);
 	if (line[0] == '\0' && memo == NULL)
+	{
+		free(line);
+		free(read_part);
 		return (NULL);
+	}
 	free(read_part);
 	return (line);
 }
@@ -156,24 +162,24 @@ char	*get_next_line(int fd)
 //     system("leaks -q a.out");
 // }
 
-__attribute__((destructor))
-static void destructor() {
-    char command[256];
-    snprintf(command, sizeof(command), "leaks -q %d", getpid());
-    system(command);
-}
+// __attribute__((destructor))
+// static void destructor() {
+//     char command[256];
+//     snprintf(command, sizeof(command), "leaks -q %d", getpid());
+//     system(command);
+// }
 
-int main(void)
-{
-	char	*line;
-	int		fd;
+// int main(void)
+// {
+// 	char	*line;
+// 	int		fd;
 
-	fd = open("test.txt", O_RDONLY);
-	while ((line = get_next_line(fd)) != NULL)
-	{
-		printf("%s", line);
-		free(line);
-	}
-	close(fd);
-	return (0);
-}
+// 	fd = open("test.txt", O_RDONLY);
+// 	while ((line = get_next_line(fd)) != NULL)
+// 	{
+// 		printf("%s", line);
+// 		free(line);
+// 	}
+// 	close(fd);
+// 	return (0);
+// }

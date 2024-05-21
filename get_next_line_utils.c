@@ -6,7 +6,7 @@
 /*   By: rishibas <rishibas@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/20 13:15:20 by rishibas          #+#    #+#             */
-/*   Updated: 2024/05/20 20:58:32 by rishibas         ###   ########.fr       */
+/*   Updated: 2024/05/21 18:12:10 by rishibas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,21 +22,25 @@ size_t	ft_strlen(const char *s)
 	return (i);
 }
 
-char	*ft_strdup(const char *buf)
+char	*ft_strdup(const char *s1)
 {
 	char	*dest;
-	int		size;
 	int		i;
+    int     s1_size;
 
-	if (buf == NULL)
-		return (NULL);
-	i = -1;
-	size = ft_strlen(buf) + 1;
-	dest = (char *)malloc(size * sizeof(char));
+	if (s1 == NULL)
+		s1_size = 0;
+	else
+		s1_size = ft_strlen(s1);
+	dest = (char *)malloc((s1_size + 1) * sizeof(char));
 	if (dest == NULL)
 		return (NULL);
-	while (++i < size)
-		dest[i] = buf[i];
+	i = 0;
+	while (i < s1_size)
+	{
+		dest[i] = s1[i];
+		i++;
+	}
 	dest[i] = '\0';
 	return (dest);
 }
@@ -80,6 +84,7 @@ char	*ft_strjoin(char *s1, char *s2)
 	    }
     }
 	str[i] = '\0';
+    free(s1);
 	return (str);
 }
 
