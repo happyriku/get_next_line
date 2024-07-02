@@ -6,16 +6,16 @@
 /*   By: rishibas <rishibas@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/15 17:49:33 by rishibas          #+#    #+#             */
-/*   Updated: 2024/05/21 19:30:04 by rishibas         ###   ########.fr       */
+/*   Updated: 2024/07/02 17:40:35 by rishibas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include <stdio.h>
 
-char	*find_newline_return_line(char *read_part)
+char	*find_newline_into_line(char *read_part)
 {
-	int 	i;
+	int		i;
 	char	*line;
 
 	i = 0;
@@ -42,91 +42,80 @@ char	*find_newline_return_line(char *read_part)
 	return (line);
 }
 
-char	*get_next_line_help(char *memo, char *buf, int fd)
+char	*get_next_line_help(char *save, char *buf, int fd)
 {
 	ssize_t	n;
-	char	*add;
+	char	*save_ptr;
 
-	add = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (!add)
+	n = 1;
+	while (!ft_strchr(save, '\n') && n != 0)
 	{
-		if (memo != NULL)
-		{
-			free(memo);
-			free(buf);
-		}
-		return (NULL);
-	}
-	n = read(fd, buf, BUFFER_SIZE);
-	if (n < 0)
-	{
-		free(add);
-		free(buf);
-		free(memo);
-		return (NULL);
-	}
-	buf[n] = '\0';
-	while (!ft_strchr(buf, '\n') && n != 0)
-	{
-		n = read(fd, add, BUFFER_SIZE);
+		n = read(fd, buf, BUFFER_SIZE);
 		if (n < 0)
-		{
-			if (memo)
-			{
-				free(memo);
-				memo = NULL;
-			}
-			free(buf);
-			free(add);
-			return (NULL);
-		}
-		add[n] = '\0';
-		buf = ft_strjoin(buf, add);
-	}
-	free(add);
-	if (n > 0)
-	{
-		if (!memo)
-			memo = ft_strdup(buf);
+			return (free(buf), NULL);
+		buf[n] = '\0';
+		if (!save)
+			save = ft_strdup(buf);
 		else
-			memo = ft_strjoin(memo, buf);
+		{
+			save_ptr = ft_strjoin(save, buf);
+			if (!save_ptr)
+				return (free(buf), free(save), NULL);
+			free(save);
+			save = save_ptr;
+		}
 	}
-	if (n == 0)
-		memo = ft_strjoin(memo, buf);
 	free(buf);
-	return (memo);
+	return (save);
 }
 
-
-char	*update_memo(char *read_part)
+char	*update_save(char *read_part, char *line)
 {
 	int		i;
 	int		j;
-	char	*memo;
+	char	*save;
 
 	i = 0;
 	while (read_part[i] != '\n' && read_part[i])
 		i++;
 	if (!read_part[i])
 		return (NULL);
-	memo = (char *)malloc(ft_strlen(read_part) - i + 1);
-	if (!memo)
+	save = (char *)malloc(ft_strlen(read_part) - i + 1);
+	if (!save)
+	{
+		line[0] = '\0';
 		return (NULL);
+	}
 	j = 0;
-    i++;
+	i++;
 	while (read_part[i])
 	{
-		memo[j] = read_part[i];
+		save[j] = read_part[i];
 		i++;
 		j++;
 	}
-	memo[j] = '\0';
-	return (memo);
+	save[j] = '\0';
+	return (save);
+}
+
+void	*ft_free(char **save, char *read_part, char *line)
+{
+	if (!*save)
+	{
+		free(line);
+		free(read_part);
+	}
+	if (!read_part && *save)
+	{
+		free(*save);
+		*save = NULL;
+	}
+	return (NULL);
 }
 
 char	*get_next_line(int fd)
 {
-	static char *memo;
+	static char	*save;
 	char		*buf;
 	char		*line;
 	char		*read_part;
@@ -136,50 +125,45 @@ char	*get_next_line(int fd)
 	buf = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!buf)
 		return (NULL);
-	read_part = get_next_line_help(memo, buf, fd);
+	read_part = get_next_line_help(save, buf, fd);
 	if (!read_part)
-		return (NULL);
-	line = find_newline_return_line(read_part);
+		return (ft_free(&save, read_part, 0));
+	line = find_newline_into_line(read_part);
 	if (!line)
-	{
-		if (memo)
-			free(memo);
 		return (NULL);
-	}
-	memo = update_memo(read_part);
-	if (line[0] == '\0' && memo == NULL)
-	{
-		free(line);
-		free(read_part);
-		return (NULL);
-	}
+	save = update_save(read_part, line);
+	if (line[0] == '\0' && save == NULL)
+		return (ft_free(&save, read_part, line));
 	free(read_part);
 	return (line);
 }
 
-// __attribute__((destructor))
-// static void destructor() {
-//     system("leaks -q a.out");
-// }
+__attribute__((destructor))
+static void destructor() {
+    system("leaks -q a.out");
+}
 
-// __attribute__((destructor))
-// static void destructor() {
-//     char command[256];
-//     snprintf(command, sizeof(command), "leaks -q %d", getpid());
-//     system(command);
-// }
+// // // // __attribute__((destructor))
+// // // // static void destructor() {
+// // // //     char command[256];
+// // // //     snprintf(command, sizeof(command), "leaks -q %d", getpid());
+// // // //     system(command);
+// // // // }
 
-// int main(void)
-// {
-// 	char	*line;
-// 	int		fd;
+int main(void)
+{
+	char	*line;
+	int		fd;
 
-// 	fd = open("test.txt", O_RDONLY);
-// 	while ((line = get_next_line(fd)) != NULL)
-// 	{
-// 		printf("%s", line);
-// 		free(line);
-// 	}
-// 	close(fd);
-// 	return (0);
-// }
+	fd = open("test.txt", O_RDONLY);
+	while (1)
+	{
+		line = get_next_line(fd);
+        printf("%s", line);
+		if (!line)
+			return (0);
+		free(line);
+	}
+	close(fd);
+	return (0);
+}

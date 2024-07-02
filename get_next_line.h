@@ -1,9 +1,26 @@
-#ifndef FT_PRINTF_H
-# define FT_PRINTF_H
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.h                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rishibas <rishibas@student.42tokyo.jp>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/22 13:40:47 by rishibas          #+#    #+#             */
+/*   Updated: 2024/06/17 14:27:02 by rishibas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#ifndef BUFFER_SIZE
-# define BUFFER_SIZE 4
-#endif
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+
+# if BUFFER_SIZE > 2147483646
+#  undef BUFFER_SIZE
+#  define BUFFER_SIZE 0
+# endif
+
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 4
+# endif
 
 # include <fcntl.h>
 # include <sys/types.h>
